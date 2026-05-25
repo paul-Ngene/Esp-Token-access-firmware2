@@ -1,0 +1,97 @@
+
+bool save_device_id(String deviceID, String secret_key) {
+  StaticJsonDocument<256> doc;
+  doc["id"] = deviceID;
+  doc["secret_key"] = secret_key;
+  
+ File configFile = LittleFS.open("/config.json", "w");
+  if (!configFile) return false;
+
+  serializeJson(doc, configFile);
+  configFile.close(); 
+  return true;
+}
+
+bool retrive_id(String &deviceID, String &secret_key) {
+  if (!LittleFS.exists("/config.json")) return false;
+
+  File configFile = LittleFS.open("/config.json", "r");
+  StaticJsonDocument<256> doc;
+  DeserializationError error = deserializeJson(doc, configFile);
+  configFile.close();
+
+  if (error) return false;
+
+  deviceID = doc["id"].as<String>();
+  secret_key = doc["secret_key"].as<String>();
+  return true;
+}
+
+
+bool save_counter(String counter, String end_time) {
+  StaticJsonDocument<256> doc;
+  doc["counter"] = counter;
+  doc["end_time"] = end_time;
+  
+ File configFile = LittleFS.open("/config.json", "w");
+  if (!configFile) return false;
+
+  serializeJson(doc, configFile);
+  configFile.close(); 
+  return true;
+}
+
+
+bool retrive_counter(String &counter, String &end_time) {
+  if (!LittleFS.exists("/config.json")) return false;
+
+  File configFile = LittleFS.open("/config.json", "r");
+  StaticJsonDocument<256> doc;
+  DeserializationError error = deserializeJson(doc, configFile);
+  configFile.close();
+
+  if (error) return false;
+
+  counter = doc["counter"].as<String>();
+  end_time = doc["end_time"].as<String>();
+  return true;
+}
+
+bool update(String change , int var) {
+  StaticJsonDocument<256> doc;
+  
+  // 1. Read existing data
+  File readFile = LittleFS.open("/config.json", "r");
+  deserializeJson(doc, readFile);
+  readFile.close();
+
+  // 2. Update only
+  switch (var)
+  {
+  case 1:
+    /* code */
+    doc["counter"] = change;
+    break;
+  case 2:
+    /* code */
+    doc["end_time"] = change;
+    break;
+  case 3:
+    /* code */
+    doc["deviceID"] = change;
+    break;
+  case 4:
+    /* code */
+    doc["secret_key"] = change;
+    break;
+  default:
+  return false;
+    break;
+  }
+
+
+  // 3. Write back to file
+  File writeFile = LittleFS.open("/config.json", "w");
+  serializeJson(doc, writeFile);
+  writeFile.close();
+}

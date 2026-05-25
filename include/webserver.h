@@ -1,0 +1,117 @@
+
+#include <ESPAsyncTCP.h>
+#include <ESPAsyncWebServer.h>
+//#include <WebSerial.h>
+void webserver_init();
+
+
+// Your existing HTML as a string (or use LittleFS to load the file)
+const char index_html[] PROGMEM = R"=====(<!DOCTYPE html>
+<html>
+<head>
+    <title>Device Controller</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <style>
+       body {
+    font-family: sans-serif;
+    text-align: center;
+    background: #f4f4f9;
+    padding: 20px;
+}
+
+.card {
+    background: white;
+    padding: 20px;
+    border-radius: 15px;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+    max-width: 400px;
+    margin: auto;
+}
+
+.timer {
+    font-size: 3em;
+    font-weight: bold;
+    color: #2c3e50;
+    margin: 20px 0;
+}
+
+input {
+    padding: 12px;
+    width: 80%;
+    border: 1px solid #ddd;
+    border-radius: 5px;
+    margin-bottom: 10px;
+    font-size: 16px;
+}
+
+button {
+    padding: 12px 25px;
+    background: #27ae60;
+    color: white;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+    font-size: 16px;
+    transition: background 0.3s ease; /* Added a smooth transition for the hover effect */
+}
+
+button:hover {
+    background: #219150;
+}
+
+.status {
+    margin-top: 15px;
+    font-weight: bold;
+}
+
+.on {
+    color: #27ae60;
+}
+
+.off {
+    color: #e74c3c;
+}
+    </style>
+</head>
+<body>
+    <div class="card">
+        <h2>Device Status</h2>
+        <div id="relayStatus" class="status">Checking...</div>
+        <div class="timer" id="timeRemaining">00:00:00</div>
+        <hr>
+        <h3>Enter Token</h3>
+        <input type="text" id="tokenInput" placeholder="Enter code here...">
+        <br>
+        <button onclick="submitToken()">Activate</button>
+        <p id="msg"></p>
+    </div>
+
+    <script>
+        // Update the UI every 2 seconds
+        setInterval(function() {
+            fetch('/status').then(response => response.json()).then(data => {
+                document.getElementById('timeRemaining').innerText = data.formatted;
+                const statusEl = document.getElementById('relayStatus');
+                if(data.balance > 0) {
+                    statusEl.innerText = "● ACTIVE";
+                    statusEl.className = "status on";
+                } else {
+                    statusEl.innerText = "○ INACTIVE";
+                    statusEl.className = "status off";
+                }
+            });
+        }, 2000);
+
+        function submitToken() {
+            const token = document.getElementById('tokenInput').value;
+            const msg = document.getElementById('msg');
+            fetch(`/msg?token=${token}`)
+                .then(response => response.text())
+                .then(text => {
+                    msg.innerText = text;
+                    document.getElementById('tokenInput').value = '';
+                });
+        }
+    </script>
+</body>
+</html>)=====";
